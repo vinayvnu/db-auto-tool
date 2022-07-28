@@ -1,11 +1,12 @@
 import pandas as pd
-from tabledata import TableData
+from insertcreate import InsertCreate
+from createinsert import CreateInsert
 
 
 DBCONNECTION = "MYSQL"
 
 
-class MainProcess:
+class MainProcess (CreateInsert):
     def __init__(self):
         FILEPATH = '/Users/ratnesh/apps/db-auto-tool/scripts/'
         FILENAME = 'input.csv'
@@ -19,6 +20,7 @@ class MainProcess:
         val = df[df['TABLENAME'] == '~'].index.values
         firstVal = 0
         secondVal = 0
+        tdObj = InsertCreate()
         for i in val:
             secondVal = i
             subDF = df.iloc[firstVal:secondVal, :]
@@ -26,11 +28,7 @@ class MainProcess:
             # print(subDF)
             firstVal = secondVal + 1
             # functions to ready all the values from the data from and load it variables tabledata.
-            tdObj = TableData()
-
             tdObj.loadAllData(subDF)
-            # tdObj.printAll()
-
             # creating insert query from the data
             tdObj.createInsertQuery()
 

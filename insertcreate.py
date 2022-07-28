@@ -1,8 +1,9 @@
 from dbhandler import DBHandler
+#from createinsert import CreateInsert
 import datetime
 
 
-class TableData(DBHandler):
+class InsertCreate(DBHandler):
     def __init__(self):
         self.isInsertDone = False
         self.isSelectDone = False
@@ -11,6 +12,8 @@ class TableData(DBHandler):
         self.REFCOLNAMELIB = {}
         self.COLNAMELIB = {}
         self.EXTRACTALLCOLLIB = {}
+        self.FINALINSERTLIST = []
+        # CreateInsert.__init__(self)
 
     def loadAllData(self, df):
         for i in df.columns.values.tolist():
@@ -50,8 +53,11 @@ class TableData(DBHandler):
 
             sql = self.createSqlQuery(self.TABLENAME, self.REFCOLNAMELIB)
             print('sql1', sql)
-            sql = self.makeInsertQuery(self.executeQuery(sql), self.TABLENAME)
-            print('sql2', sql)
+            insertList = self.makeInsertQuery(
+                self.executeQuery(sql), self.TABLENAME)
+            self.FINALINSERTLIST += insertList
+
+            #print(f'final list creted \n {self.FINALINSERTLIST} ')
 
         except Exception as e:
             print('--------------------------------ERROR-----------------------')
@@ -100,27 +106,22 @@ class TableData(DBHandler):
         range_of_value = list(self.COLNAMELIB.items())[0][1].lower().split('-')
 
         loop_limit = int(range_of_value[1]) - int(range_of_value[0])
-        print(f'loop_limit: {loop_limit}')
-        print(INSERTVALUES.split(value_to_be_changed)[1])
         final_queries = []
 
         for loopv in range(loop_limit):
-            print(loopv)
-            print(str(int(range_of_value[0]) + loopv))
-            print(INSERTVALUES.split(value_to_be_changed)[1])
             final_queries.append(sql + COLUMNNAMES + ') VALUES (' +
                                  str(int(range_of_value[0]) + loopv) +
-                                 INSERTVALUES.split(value_to_be_changed)[1])
+                                 INSERTVALUES.split(value_to_be_changed)[1] + ')')
         return final_queries
 
     def makeInsertQuery(self, querydata, TABLENAME):
         sql = 'INSERT INTO ' + TABLENAME + ' ('
-        COLUMNNAMES = ''
-        INSERTVALUES = ''
-
+        return_append = []
         # print(querydata)
         for querydataIter in querydata:
             # print(querydataIter)
+            COLUMNNAMES = ''
+            INSERTVALUES = ''
             for i in querydataIter.keys():
                 # print('here1')
                 if i.upper() in self.COLNAMELIB:
@@ -134,13 +135,7 @@ class TableData(DBHandler):
                     INSERTVALUES = INSERTVALUES + \
                         str(self.addQuotesIf(TABLENAME,
                                              i, querydataIter[i])) + ', '
-                # print('here3')
-        '''print('________________________________________________')
-        print(f'self.COLNAMELIB: {self.COLNAMELIB}')
-        print('________________________________________________')
-        print(f'INSERTVALUES: {INSERTVALUES}')
-        print('________________________________________________')'''
 
-        '''return sql + COLUMNNAMES.rstrip(' ').rstrip(',') + ') VALUES (' + INSERTVALUES.rstrip(' ').rstrip(',') + ');'  '''
-        return self.checkAndMakeMultiple(sql, COLUMNNAMES.rstrip(
-            ' ').rstrip(','), INSERTVALUES.rstrip(' ').rstrip(','))
+            return_append += self.checkAndMakeMultiple(sql, COLUMNNAMES.rstrip(
+                ' ').rstrip(','), INSERTVALUES.rstrip(' ').rstrip(','))
+        return return_append
